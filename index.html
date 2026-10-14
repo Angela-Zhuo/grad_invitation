@@ -85,7 +85,8 @@
 
         .letter {
             position: absolute;
-            top: 10px; left: 10px; right: 10px;
+            top: 10px; left: 10px;
+            width: 300px; 
             height: 200px; 
             background: #fbfaf8;
             z-index: 2; 
@@ -93,9 +94,7 @@
             box-shadow: 0 2px 10px rgba(0,0,0,0.05);
             overflow: hidden;
             pointer-events: none; 
-            transition: height 0.8s cubic-bezier(0.4, 0, 0.2, 1) 0.6s, 
-                        transform 0.8s cubic-bezier(0.4, 0, 0.2, 1) 0.6s,
-                        box-shadow 0.8s ease 0.6s;
+            transition: all 0.8s cubic-bezier(0.4, 0, 0.2, 1);
         }
 
         .envelope-scene.is-open .letter {
@@ -105,21 +104,43 @@
             pointer-events: auto; 
         }
 
+        .letter.fullscreen-mode {
+            position: fixed !important;
+            top: 0 !important;
+            left: 0 !important;
+            width: 100vw !important;
+            height: 100dvh !important;
+            transform: none !important;
+            border-radius: 0 !important;
+            z-index: 9999 !important;
+            box-shadow: none !important;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
         .letter-content {
-            position: absolute;
-            top: 0; left: 0; right: 0;
-            height: 550px; 
-            padding: 10px;
+            width: 100%;
+            height: 100%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 15px;
+            transition: all 0.8s ease;
         }
         
         .letter-inner-border {
             border: 1px solid #e6e2d6;
+            width: 100%;
             height: 100%;
+            max-width: 500px; 
+            max-height: 650px; 
             display: flex;
             flex-direction: column;
             justify-content: space-between;
-            padding: 15px; 
+            padding: 20px; 
             text-align: center;
+            background: #fbfaf8;
         }
 
         .envelope-front {
@@ -194,13 +215,6 @@
             opacity: 0;
             pointer-events: none;
         }
-
-        @media (max-height: 700px) {
-            .envelope-scene { transform: scale(0.85); }
-        }
-        @media (max-height: 600px) {
-            .envelope-scene { transform: scale(0.75); }
-        }
     </style>
 </head>
 <body>
@@ -210,7 +224,6 @@
         <div class="text-[#8c8273] animate-bounce text-sm">↓</div>
     </div>
 
-    <!-- Rimosso ogni comando in linea, tutto gestito in sicurezza da JS in basso -->
     <div class="envelope-scene floating" id="envelope-scene">
         <div class="envelope-wrapper" id="envelope-wrapper">
             
@@ -227,37 +240,42 @@
                                 Informatica <span class="mx-2 text-gray-300">×</span> Architettura
                             </p>
                             
-                            <div class="space-y-2 mb-3">
+                            <div class="space-y-2 mb-3 mt-4">
                                 <div>
                                     <p class="text-[0.5rem] uppercase tracking-widest text-gray-400 mb-0.5">Data e Ora</p>
-                                    <p class="font-serif text-[0.9rem] text-[#2c2c2c]">21 Ottobre, 19:00</p>
+                                    <p class="font-serif text-[1rem] text-[#2c2c2c]">21 Ottobre, 19:00</p>
                                 </div>
                                 <div>
-                                    <p class="text-[0.5rem] uppercase tracking-widest text-gray-400 mb-0.5">Location</p>
-                                    <p class="font-serif text-[0.9rem] text-[#2c2c2c] px-2 leading-tight">Hong Ni, Via Giuseppe Giusti, 41, Milano</p>
+                                    <p class="text-[0.5rem] uppercase tracking-widest text-gray-400 mb-0.5 mt-2">Location</p>
+                                    <p class="font-serif text-[1rem] text-[#2c2c2c] px-2 leading-tight">Hong Ni, Via Giuseppe Giusti, 41, Milano</p>
                                 </div>
                             </div>
                         </div>
                         
-                        <p class="text-[0.65rem] text-[#5c564d] italic mb-3 px-2 leading-tight">
+                        <p class="text-[0.65rem] text-[#5c564d] italic mb-3 mt-2 px-2 leading-tight">
                             Dopo aver superato indenni le aule e i laboratori del Politecnico di Milano, ci riuniamo per celebrare questo ambito traguardo.
                         </p>
 
-                        <div class="bg-[#f0ece5] p-3 border border-[#dfd9ce] mb-3 mx-1">
+                        <div class="bg-[#f0ece5] p-4 border border-[#dfd9ce] mb-4 mx-1 mt-2">
                             <div class="flex items-center justify-center gap-2 mb-2">
                                 <span class="w-4 h-[1px] bg-[#c2baab]"></span>
-                                <span class="text-[0.5rem] font-bold uppercase tracking-widest text-[#8a8171]">Dress Code</span>
+                                <span class="text-[0.55rem] font-bold uppercase tracking-widest text-[#8a8171]">Dress Code</span>
                                 <span class="w-4 h-[1px] bg-[#c2baab]"></span>
                             </div>
-                            <h2 class="font-serif italic text-base text-[#212121] mb-1">"The wrong place"</h2>
-                            <p class="text-[0.6rem] leading-tight text-[#5c564d] text-center">
+                            <h2 class="font-serif italic text-lg text-[#212121] mb-1">"The wrong place"</h2>
+                            <p class="text-[0.65rem] leading-tight text-[#5c564d] text-center mt-2">
                                 Vi preghiamo di indossare l'outfit più <strong>inadeguato</strong> possibile per l'evento. L'eleganza non sarà tollerata.
                             </p>
                         </div>
                         
-                        <button onclick="showRsvpModal(event)" class="mb-1 px-4 py-2.5 border border-[#1a1a1a] text-[#1a1a1a] text-[0.65rem] uppercase tracking-widest hover:bg-[#1a1a1a] hover:text-white transition-colors duration-300 w-full font-semibold relative z-10 cursor-pointer">
-                            Conferma Presenza
-                        </button>
+                        <div class="flex w-full gap-2 mt-auto">
+                            <button onclick="showModal('conferma', event)" class="flex-1 px-2 py-3 border border-[#1a1a1a] bg-[#1a1a1a] text-white text-[0.65rem] uppercase tracking-widest hover:bg-[#333] transition-colors font-semibold z-10 cursor-pointer">
+                                Conferma
+                            </button>
+                            <button onclick="showModal('rifiuta', event)" class="flex-1 px-2 py-3 border border-[#1a1a1a] text-[#1a1a1a] text-[0.65rem] uppercase tracking-widest hover:bg-[#f0ece5] transition-colors font-semibold z-10 cursor-pointer">
+                                Non Riesco
+                            </button>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -272,11 +290,8 @@
     <!-- Modale RSVP -->
     <div id="rsvpModal" class="fixed inset-0 z-50 hidden items-center justify-center bg-[#f2eee8]/80 backdrop-blur-sm p-6 opacity-0 transition-opacity duration-300">
         <div class="bg-white p-8 max-w-[300px] w-full text-center border border-[#e6e2d6] shadow-2xl transform scale-95 transition-transform duration-300" id="rsvpContent">
-            <h3 class="font-serif text-xl mb-3 text-[#1a1a1a]">RSVP</h3>
-            <p class="text-xs text-gray-600 mb-8 leading-relaxed">
-                Contattateci per confermare la vostra presenza e il vostro outfit.<br><br>
-                <em>I look normali verranno segnalati alla segreteria.</em>
-            </p>
+            <h3 id="modalTitle" class="font-serif text-xl mb-3 text-[#1a1a1a]">RSVP</h3>
+            <p id="modalDesc" class="text-xs text-gray-600 mb-8 leading-relaxed"></p>
             <button onclick="closeRsvpModal(event)" class="px-6 py-3 bg-[#1a1a1a] text-white text-[0.65rem] uppercase tracking-widest hover:bg-[#333] transition-colors w-full cursor-pointer">
                 Ricevuto
             </button>
@@ -292,6 +307,7 @@
             const scene = document.getElementById('envelope-scene');
             const envWrapper = document.getElementById('envelope-wrapper');
             const hint = document.getElementById('hint');
+            const letter = document.querySelector('.letter');
             
             scene.classList.add('is-open'); 
             envWrapper.classList.add('open-state'); 
@@ -305,15 +321,20 @@
             setTimeout(() => {
                 scene.classList.add('is-faded');
             }, 1400);
+
+            setTimeout(() => {
+                envWrapper.style.transform = 'none';
+                envWrapper.style.perspective = 'none';
+                scene.style.transform = 'none';
+                
+                letter.classList.add('fullscreen-mode');
+            }, 1900);
         }
 
-        // --- SISTEMA DI CLIC / TOUCH UNIVERSALE ---
         const sceneElement = document.getElementById('envelope-scene');
         
-        // Funzione di gestione che copre sia il mouse che il tocco senza sovrapporsi
         function handleInteraction(e) {
-            // Evita che cliccando sul bottone RSVP, l'animazione della busta impazzisca
-            if (e.target.closest('button')) return;
+            if (e.target.closest('button')) return; 
             openEnvelope();
         }
 
@@ -321,13 +342,22 @@
         sceneElement.addEventListener('touchstart', function(e) {
             handleInteraction(e);
         }, { passive: true });
-        // -------------------------------------------
 
-        function showRsvpModal(event) {
+        function showModal(type, event) {
             event.stopPropagation(); 
             
             const modal = document.getElementById('rsvpModal');
             const content = document.getElementById('rsvpContent');
+            const title = document.getElementById('modalTitle');
+            const desc = document.getElementById('modalDesc');
+            
+            if (type === 'conferma') {
+                title.innerHTML = "Perfetto!";
+                desc.innerHTML = "Non vediamo l'ora di vederti.<br>Ricorda: preparati l'outfit più sbagliato possibile.<br><br><em>Faccelo sapere su WhatsApp per i dettagli!</em>";
+            } else {
+                title.innerHTML = "Errore 404";
+                desc.innerHTML = "Scusa non trovata! <br><br>Sei sicuro di voler perdere la festa di fine studi? (I look normali saranno felici della tua assenza).<br><br><em>Avvisaci comunque in chat!</em>";
+            }
             
             modal.classList.remove('hidden');
             modal.classList.add('flex');
