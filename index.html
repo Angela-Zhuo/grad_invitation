@@ -215,21 +215,66 @@
             transform: translate(-50%, -50%) scale(0.6);
         }
 
+        .envelope-scene {
+            transition: opacity 0.8s ease;
+        }
+
+        .envelope-scene.pre-name {
+            opacity: 0;
+            pointer-events: none;
+        }
+
+        /* Nome dell'invitato sotto la busta */
+        .guest-label {
+            position: absolute;
+            right: 18px;
+            bottom: 12px;
+            max-width: 180px;
+            text-align: right;
+            z-index: 6;
+            pointer-events: none;
+            transition: opacity 0.3s ease;
+        }
+
+        .envelope-scene.is-open .guest-label {
+            opacity: 0;
+        }
+
         .envelope-scene.is-faded {
             opacity: 0;
             pointer-events: none;
             transition: opacity 0.4s ease;
         }
+
+        /* --- Chiusura lettera e invio della posta --- */
+        .letter-fullscreen.letter-closing {
+            animation: none !important;
+            transform: scale(0.25) translateY(6vh) !important;
+            opacity: 0 !important;
+            pointer-events: none !important;
+            transition: transform 0.9s cubic-bezier(0.5, 0, 0.75, 0), opacity 0.7s ease 0.2s !important;
+        }
+
+        @keyframes mail-fly {
+            0%   { transform: translate(0, 0) rotate(0deg) scale(1); opacity: 1; }
+            18%  { transform: translate(0, 14px) rotate(-3deg) scale(1.05); opacity: 1; }
+            80%  { opacity: 1; }
+            100% { transform: translate(34vw, -120vh) rotate(16deg) scale(0.45); opacity: 0; }
+        }
+
+        .mail-flying {
+            animation: mail-fly 1.5s cubic-bezier(0.55, 0, 0.9, 0.5) forwards;
+        }
     </style>
 </head>
 <body>
 
-    <div id="hint">
+    <div id="hint" style="opacity:0;">
         <p class="text-[#8c8273] uppercase tracking-[0.2em] text-[0.65rem] font-semibold mb-2">Tocca la busta per aprire</p>
         <div class="text-[#8c8273] animate-bounce text-sm">↓</div>
     </div>
 
-    <div class="envelope-scene floating" id="envelope-scene">
+    <div class="envelope-scene floating pre-name" id="envelope-scene">
         <div class="envelope-wrapper" id="envelope-wrapper">
             
             <div class="envelope-back"></div>
@@ -241,9 +286,9 @@
                         
                         <div>
                             <p class="text-[0.5rem] uppercase tracking-[0.3em] text-gray-400 mb-2 mt-1">Graduation Event</p>
-                            <h1 class="text-3xl font-serif text-[#1a1a1a] mb-1 leading-none">Angela & Mei</h1>
+                            <h1 class="text-3xl font-serif text-[#1a1a1a] mb-1 leading-none">Angela - Mei</h1>
                             <p class="text-[0.55rem] uppercase tracking-[0.1em] text-gray-500 mb-3 border-b border-gray-200 pb-3">
-                                Informatica <span class="mx-2 text-gray-300">×</span> Architettura
+                                Ing. Info <span class="mx-2 text-gray-300"> </span> Architettura
                             </p>
                             
                             <div class="space-y-2 mb-3 mt-4">
@@ -254,13 +299,16 @@
                                 <div>
                                     <p class="text-[0.5rem] uppercase tracking-widest text-gray-400 mb-0.5 mt-2">Location</p>
                                     <p class="font-serif text-[1rem] text-[#2c2c2c] px-2 leading-tight">Hong Ni, Via Giuseppe Giusti, 41, Milano</p>
+                                    <a href="https://maps.app.goo.gl/n17gLuUvkXmggui78?g_st=ic" target="_blank" class="text-[0.55rem] text-[#1a1a1a] underline hover:no-underline">
+                                        Vedi sulla mappa
+                                    </a>
                                 </div>
                             </div>
                         </div>
                         
                         <p class="text-[0.65rem] text-[#5c564d] italic mb-3 mt-2 px-2 leading-tight">
-                            Dopo aver superato indenni le aule e i laboratori del Politecnico di Milano, ci riuniamo per celebrare questo ambito traguardo.
-                        </p>
+                        Sopravvivere al Poli è stato difficile, contro ogni previsione (e con molta caffeina), 
+                        io e Mei ce l'abbiamo fatta! Adesso è il momento di festeggiare! </p>
 
                         <div class="bg-[#f0ece5] p-4 border border-[#dfd9ce] mb-4 mx-1 mt-2">
                             <div class="flex items-center justify-center gap-2 mb-2">
@@ -288,8 +336,46 @@
             
             <div class="envelope-front"></div>
             <div class="envelope-flap"></div>
-            <div class="wax-seal">A&M</div>
+            <div class="wax-seal">G</div>
 
+        </div>
+
+        <div class="guest-label">
+            <p id="guestLabelName" class="font-serif italic text-lg text-[#3a3428] leading-tight break-words"></p>
+        </div>
+    </div>
+
+    <!-- Overlay invio posta -->
+    <div id="sendOverlay" class="fixed inset-0 items-center justify-center" style="display:none; z-index:9999990; background-color:transparent; transition: background-color 0.8s ease;">
+        <div id="sendFly" style="opacity:0; transition: opacity 0.5s ease;">
+            <div class="envelope-scene">
+                <div class="envelope-back"></div>
+                <div class="envelope-front"></div>
+                <div class="envelope-flap"></div>
+                <div class="wax-seal">G</div>
+            </div>
+        </div>
+        <div id="sendThanks" class="absolute inset-0 flex flex-col items-center justify-center text-center px-8" style="opacity:0; pointer-events:none; transition: opacity 0.8s ease;">
+            <p class="text-[0.5rem] uppercase tracking-[0.3em] text-gray-400 mb-3">Graduation Event</p>
+            <h2 class="font-serif text-4xl text-[#1a1a1a] mb-3">Inviata!</h2>
+            <p id="sendThanksText" class="font-serif italic text-base text-[#5c564d] leading-snug"></p>
+            <p id="sendHint" class="text-[0.65rem] uppercase tracking-widest text-[#8c8273] mt-8" style="opacity:0; transition: opacity 0.6s ease;">Puoi chiudere questa pagina</p>
+        </div>
+    </div>
+
+    <!-- Modale Nome (prima di aprire la lettera) -->
+    <div id="nameModal" class="fixed inset-0 z-[9999999] hidden items-center justify-center bg-[#f2eee8]/90 backdrop-blur-sm p-6 opacity-0 transition-opacity duration-300">
+        <div class="bg-white p-8 max-w-[320px] w-full text-center border border-[#e6e2d6] shadow-2xl transform scale-95 transition-transform duration-300" id="nameContent">
+            <p class="text-[0.5rem] uppercase tracking-[0.3em] text-gray-400 mb-3">Graduation Event</p>
+            <h3 class="font-serif text-xl mb-2 text-[#1a1a1a]">Who are you?</h3>
+            <p class="text-xs text-gray-600 mb-5 leading-relaxed">Scrivi il tuo nome.</p>
+            <input id="guestName" type="text" maxlength="60" autocomplete="name" placeholder="Nome e cognome"
+                   class="w-full border border-[#dfd9ce] bg-[#fbfaf8] px-3 py-3 text-center text-base text-[#1a1a1a] outline-none focus:border-[#1a1a1a] transition-colors mb-2"
+                   style="font-size:16px;">
+            <p id="nameError" class="text-[0.65rem] text-[#711515] h-4 mb-3"></p>
+            <button onclick="submitName(event)" class="px-6 py-3 bg-[#1a1a1a] text-white text-[0.65rem] uppercase tracking-widest hover:bg-[#333] transition-colors w-full cursor-pointer">
+                Continua
+            </button>
         </div>
     </div>
 
@@ -334,20 +420,123 @@
             }, 1700);
         }
 
+        // ============================================================
+        // CONFIGURAZIONE: incolla qui l'URL dell'app web di Google Apps Script
+        // (vedi istruzioni). Finché è vuoto, le risposte vengono salvate
+        // solo sul dispositivo dell'invitato (localStorage).
+        // ============================================================
+        const RSVP_ENDPOINT = "https://script.google.com/macros/s/AKfycbzAHmqY7aQl4ThsgLEvTjqqmgBbC_FJskY4q44Uwra7Z2c_jejzgurORMRDtk9_8ofx/exec";
+
+        let guestName = "";
+        try { guestName = localStorage.getItem('guestName') || ""; } catch (e) {}
+
         const sceneElement = document.getElementById('envelope-scene');
-        
+
+        // --- Modale nome ---
+        function showNameModal() {
+            const modal = document.getElementById('nameModal');
+            const content = document.getElementById('nameContent');
+            const input = document.getElementById('guestName');
+            if (!modal.classList.contains('hidden')) return;
+
+            input.value = guestName;
+            document.getElementById('nameError').textContent = "";
+            modal.classList.remove('hidden');
+            modal.classList.add('flex');
+            setTimeout(() => {
+                modal.classList.remove('opacity-0');
+                modal.classList.add('opacity-100');
+                content.classList.remove('scale-95');
+                content.classList.add('scale-100');
+                input.focus();
+            }, 10);
+        }
+
+        function hideNameModal() {
+            const modal = document.getElementById('nameModal');
+            const content = document.getElementById('nameContent');
+            modal.classList.remove('opacity-100');
+            modal.classList.add('opacity-0');
+            content.classList.remove('scale-100');
+            content.classList.add('scale-95');
+            setTimeout(() => {
+                modal.classList.add('hidden');
+                modal.classList.remove('flex');
+            }, 300);
+        }
+
+        function submitName(event) {
+            if (event) event.stopPropagation();
+            const input = document.getElementById('guestName');
+            const name = input.value.trim().replace(/\s+/g, ' ');
+            if (name.length < 2) {
+                document.getElementById('nameError').textContent = "Inserisci il tuo nome per continuare";
+                input.focus();
+                return;
+            }
+            guestName = name;
+            try { localStorage.setItem('guestName', guestName); } catch (e) {}
+            hideNameModal();
+            revealEnvelope();
+        }
+
+        // Mostra la busta personalizzata con il nome sotto
+        function revealEnvelope() {
+            document.getElementById('guestLabelName').textContent = guestName;
+            setTimeout(() => {
+                sceneElement.classList.remove('pre-name');
+                document.getElementById('hint').style.opacity = '1';
+            }, 350);
+        }
+
+        document.getElementById('guestName').addEventListener('keydown', function(e) {
+            if (e.key === 'Enter') submitName(e);
+        });
+
         function handleInteraction(e) {
-            if (e.target.closest('button')) return; 
+            if (e.target.closest('button')) return;
+            if (isOpened) return;
+            if (!guestName || sceneElement.classList.contains('pre-name')) return;
             openEnvelope();
         }
 
         sceneElement.addEventListener('click', handleInteraction);
-        sceneElement.addEventListener('touchstart', function(e) {
-            handleInteraction(e);
-        }, { passive: true });
+
+        // Appena la pagina si carica, chiediamo il nome
+        showNameModal();
+
+        // --- Salvataggio RSVP ---
+        function saveRsvp(type) {
+            const record = {
+                nome: guestName,
+                risposta: type === 'conferma' ? 'Confermato' : 'Non riesce',
+                data: new Date().toLocaleString('it-IT', { timeZone: 'Europe/Rome' })
+            };
+
+            // Copia locale di sicurezza
+            try {
+                const log = JSON.parse(localStorage.getItem('rsvpLog') || '[]');
+                log.push(record);
+                localStorage.setItem('rsvpLog', JSON.stringify(log));
+            } catch (e) {}
+
+            // Invio al documento online (Google Sheet)
+            if (RSVP_ENDPOINT) {
+                fetch(RSVP_ENDPOINT, {
+                    method: 'POST',
+                    mode: 'no-cors',
+                    body: new URLSearchParams(record)
+                }).catch(() => {});
+            }
+        }
+
+        let lastRsvpType = null;
+        let isSending = false;
 
         function showModal(type, event) {
             event.stopPropagation(); 
+            lastRsvpType = type;
+            saveRsvp(type);
             
             const modal = document.getElementById('rsvpModal');
             const content = document.getElementById('rsvpContent');
@@ -355,11 +544,11 @@
             const desc = document.getElementById('modalDesc');
             
             if (type === 'conferma') {
-                title.innerHTML = "Perfetto!";
-                desc.innerHTML = "Non vediamo l'ora di vederti.<br>Ricorda: preparati l'outfit più sbagliato possibile.<br><br><em>Faccelo sapere su WhatsApp per i dettagli!</em>";
+                title.textContent = "Perfetto, " + guestName + "!";
+                desc.innerHTML = "Non vediamo l'ora di vederti.<br>Ricorda: preparati l'outfit più sbagliato possibile.<br><br><em>Se cambi idea, puoi sempre avvisarci in chat o rispondere di nuovo alla lettera!</em>";
             } else {
                 title.innerHTML = "Errore 404";
-                desc.innerHTML = "Scusa non trovata! <br><br>Sei sicuro di voler perdere la festa di fine studi? (I look normali saranno felici della tua assenza).<br><br><em>Avvisaci comunque in chat!</em>";
+                desc.innerHTML = "Scusa non trovata! <br><br>Sei sicuro di volerti perdere questa cena? rischi la FOMO!.<br><br><em>Avvisaci in chat se cambi idea! o puoi ricomplare la lettera</em>";
             }
             
             modal.classList.remove('hidden');
@@ -388,6 +577,55 @@
                 modal.classList.add('hidden');
                 modal.classList.remove('flex');
             }, 300);
+
+            // Solo dopo "Conferma": la lettera si chiude e parte la posta
+            if (lastRsvpType === 'conferma') {
+                setTimeout(sendLetter, 400);
+            }
+        }
+
+        function sendLetter() {
+            if (isSending) return;
+            const letter = document.querySelector('.letter-fullscreen');
+            if (!letter) return;
+            isSending = true;
+
+            const overlay = document.getElementById('sendOverlay');
+            const fly = document.getElementById('sendFly');
+            const thanks = document.getElementById('sendThanks');
+
+            document.getElementById('sendThanksText').textContent =
+                'Grazie, ' + guestName + '. Ci vediamo il 21 ottobre!';
+
+            // 1. La lettera si rimpicciolisce e si chiude
+            letter.classList.add('letter-closing');
+
+            // 2. Compare la busta chiusa
+            setTimeout(() => {
+                overlay.style.display = 'flex';
+                letter.style.display = 'none';
+                requestAnimationFrame(() => { fly.style.opacity = '1'; });
+            }, 500);
+
+            // 3. La busta parte verso l'alto
+            setTimeout(() => {
+                fly.classList.add('mail-flying');
+            }, 1700);
+
+            // 4. Messaggio finale
+            setTimeout(() => {
+                overlay.style.backgroundColor = '#f2eee8';
+                thanks.style.opacity = '1';
+            }, 3100);
+
+            // 5. Chiusura automatica della pagina
+            setTimeout(() => {
+                window.close();
+                // Se il browser non permette di chiudere la pagina, resta il messaggio
+                setTimeout(() => {
+                    document.getElementById('sendHint').style.opacity = '1';
+                }, 500);
+            }, 5800);
         }
     </script>
 </body>
