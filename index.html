@@ -1,0 +1,384 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Invito di Laurea - Angela & Mei</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,600;0,700;1,400&family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet">
+    
+    <style>
+        /* Setup base per evitare scroll e usare font corretti */
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #f2eee8;
+            margin: 0;
+            height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            overflow: hidden;
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        .font-serif {
+            font-family: 'Playfair Display', serif;
+        }
+
+        /* Testo di suggerimento iniziale */
+        #hint {
+            position: absolute;
+            top: 12vh;
+            left: 0;
+            width: 100%;
+            text-align: center;
+            pointer-events: none;
+            transition: opacity 0.4s ease;
+            z-index: 10;
+        }
+
+        /* Contenitore principale interattivo - Area di clic massimizzata */
+        .envelope-scene {
+            position: relative;
+            width: 320px;
+            height: 220px;
+            cursor: pointer;
+            touch-action: manipulation; /* Ottimizzazione per tap su mobile */
+            z-index: 1;
+        }
+
+        /* Animazione fluttuante (attiva solo a busta chiusa) */
+        .floating {
+            animation: float-env 3s ease-in-out infinite;
+        }
+
+        @keyframes float-env {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(-8px); }
+        }
+
+        .envelope-wrapper {
+            position: relative;
+            width: 100%;
+            height: 100%;
+            perspective: 1200px;
+            transition: transform 0.8s cubic-bezier(0.4, 0, 0.2, 1) 0.6s;
+        }
+
+        /* Stato aperto della busta: si sposta in basso per centrare la lettera */
+        .open-state {
+            transform: translateY(140px);
+        }
+
+        /* 1. Retro della busta (tasca) */
+        .envelope-back {
+            position: absolute;
+            inset: 0;
+            background: #c6bda8;
+            border-radius: 4px;
+            box-shadow: 0 15px 35px rgba(0,0,0,0.15);
+            z-index: 1;
+            transition: opacity 0.5s ease;
+        }
+
+        .envelope-back::after {
+            content: '';
+            position: absolute;
+            inset: 0;
+            box-shadow: inset 0 20px 30px rgba(0,0,0,0.1);
+            border-radius: 4px;
+        }
+
+        /* 2. Il Cartoncino / Lettera */
+        .letter {
+            position: absolute;
+            top: 10px; left: 10px; right: 10px;
+            height: 200px; /* Altezza iniziale nascosta nella busta */
+            background: #fbfaf8;
+            z-index: 2; /* Sopra il retro, sotto il fronte */
+            border-radius: 4px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+            overflow: hidden;
+            pointer-events: none; /* FONDAMENTALE: Non blocca il touch quando la busta è chiusa */
+            /* L'animazione di scivolamento attende l'apertura della linguetta (0.6s) */
+            transition: height 0.8s cubic-bezier(0.4, 0, 0.2, 1) 0.6s, 
+                        transform 0.8s cubic-bezier(0.4, 0, 0.2, 1) 0.6s,
+                        box-shadow 0.8s ease 0.6s;
+        }
+
+        .envelope-scene.is-open .letter {
+            height: 520px; /* Si allunga per mostrare il contenuto */
+            transform: translateY(-310px); /* Scivola verso l'alto */
+            box-shadow: 0 15px 40px rgba(0,0,0,0.15);
+            pointer-events: auto; /* RIABILITA il click per far funzionare il bottone RSVP */
+        }
+
+        /* Contenitore interno del testo */
+        .letter-content {
+            position: absolute;
+            top: 0; left: 0; right: 0;
+            height: 520px; 
+            padding: 12px;
+        }
+        
+        .letter-inner-border {
+            border: 1px solid #e6e2d6;
+            height: 100%;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            padding: 24px 20px;
+            text-align: center;
+        }
+
+        /* 3. Fronte della busta (tasca anteriore) */
+        .envelope-front {
+            position: absolute;
+            inset: 0;
+            z-index: 3; /* Sopra la lettera per nasconderne la parte inferiore */
+            border-left: 160px solid #dcd3bf;
+            border-right: 160px solid #dcd3bf;
+            border-bottom: 110px solid #d4cbb6;
+            border-top: 110px solid transparent;
+            pointer-events: none; /* Lascia passare i clic alla busta o ai bottoni sotto */
+            border-radius: 4px;
+            transition: opacity 0.5s ease;
+        }
+
+        /* 4. Linguetta superiore (flap) */
+        .envelope-flap {
+            position: absolute;
+            top: 0; left: 0;
+            border-left: 160px solid transparent;
+            border-right: 160px solid transparent;
+            border-top: 130px solid #d1c6b1;
+            border-bottom: 0 solid transparent;
+            transform-origin: top center;
+            z-index: 4; /* Sopra la tasca anteriore da chiusa */
+            transition: transform 0.6s cubic-bezier(0.4, 0, 0.2, 1), z-index 0s 0.3s;
+            pointer-events: none;
+            filter: drop-shadow(0 4px 5px rgba(0,0,0,0.15));
+        }
+
+        /* Rotazione della linguetta all'apertura */
+        .envelope-scene.is-open .envelope-flap {
+            transform: rotateX(180deg);
+            z-index: 1; /* Va dietro alla lettera così non la copre quando scivola su */
+        }
+
+        /* 5. Ceralacca posizionata matematicamente e centrata sulla punta della linguetta */
+        .wax-seal {
+            position: absolute;
+            top: 130px; /* Esattamente l'altezza della linguetta */
+            left: 160px; /* Esattamente il centro dei 320px di larghezza */
+            width: 48px;
+            height: 48px;
+            background: #711515;
+            border-radius: 50%;
+            color: #e2c073;
+            font-family: 'Playfair Display', serif;
+            font-size: 15px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.3), inset 0 0 10px rgba(0,0,0,0.6);
+            z-index: 5; /* In cima a tutto */
+            /* Traslazione per centrare l'elemento sulle coordinate assolute */
+            transform: translate(-50%, -50%);
+            transition: opacity 0.3s ease, transform 0.3s ease;
+            pointer-events: none; /* Non blocca il clic sull'envelope-scene */
+        }
+
+        .wax-seal::after {
+            content: '';
+            position: absolute;
+            inset: 3px;
+            border: 1px solid rgba(226, 192, 115, 0.3);
+            border-radius: 50%;
+        }
+
+        /* Effetto di rottura del sigillo */
+        .envelope-scene.is-open .wax-seal {
+            opacity: 0;
+            transform: translate(-50%, -50%) scale(0.6);
+        }
+
+        /* Effetto di scomparsa della busta al termine dell'animazione */
+        .envelope-scene.is-faded .envelope-back,
+        .envelope-scene.is-faded .envelope-front,
+        .envelope-scene.is-faded .envelope-flap {
+            opacity: 0;
+            pointer-events: none;
+        }
+    </style>
+</head>
+<body>
+
+    <!-- Testo Guida Superiore -->
+    <div id="hint">
+        <p class="text-[#8c8273] uppercase tracking-[0.2em] text-[0.65rem] font-semibold mb-2">Tocca la busta per aprire</p>
+        <div class="text-[#8c8273] animate-bounce text-sm">↓</div>
+    </div>
+
+    <!-- Scena Interattiva (Tutta l'area è cliccabile, rimossi gli handler inline) -->
+    <div class="envelope-scene floating" id="envelope-scene">
+        <div class="envelope-wrapper" id="envelope-wrapper">
+            
+            <!-- 1. Tasca Dietro -->
+            <div class="envelope-back"></div>
+            
+            <!-- 2. Lettera che scivola fuori -->
+            <div class="letter">
+                <div class="letter-content">
+                    <div class="letter-inner-border">
+                        
+                        <!-- Intestazione Elegante -->
+                        <div>
+                            <p class="text-[0.55rem] uppercase tracking-[0.3em] text-gray-400 mb-3">Graduation Event</p>
+                            <h1 class="text-3xl font-serif text-[#1a1a1a] mb-1 leading-none">Angela & Mei</h1>
+                            <p class="text-[0.55rem] uppercase tracking-[0.1em] text-gray-500 mb-5 border-b border-gray-200 pb-4">
+                                Informatica <span class="mx-2 text-gray-300">×</span> Architettura
+                            </p>
+                            
+                            <!-- Dettagli Logistici -->
+                            <div class="space-y-3 mb-5">
+                                <div>
+                                    <p class="text-[0.55rem] uppercase tracking-widest text-gray-400 mb-0.5">Data e Ora</p>
+                                    <p class="font-serif text-[1rem] text-[#2c2c2c]">21 Ottobre, 19:00</p>
+                                </div>
+                                <div>
+                                    <p class="text-[0.55rem] uppercase tracking-widest text-gray-400 mb-0.5">Location</p>
+                                    <p class="font-serif text-[1rem] text-[#2c2c2c]">Hong Ni, Via Giuseppe Giusti, 41, Milano</p>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <!-- Testo Formale (Contrasto) -->
+                        <p class="text-[0.65rem] text-[#5c564d] italic mb-4">
+                            Dopo aver superato indenni le aule e i laboratori del Politecnico di Milano, ci riuniamo per celebrare questo ambito traguardo.
+                        </p>
+
+                        <!-- Sezione Dress Code (il contrasto comico) -->
+                        <div class="bg-[#f0ece5] p-4 border border-[#dfd9ce]">
+                            <div class="flex items-center justify-center gap-2 mb-2">
+                                <span class="w-6 h-[1px] bg-[#c2baab]"></span>
+                                <span class="text-[0.55rem] font-bold uppercase tracking-widest text-[#8a8171]">Dress Code Not Obbligatorio</span>
+                                <span class="w-6 h-[1px] bg-[#c2baab]"></span>
+                            </div>
+                            <h2 class="font-serif italic text-lg text-[#212121] mb-2">"The wrong place"</h2>
+                            <p class="text-[0.65rem] leading-relaxed text-[#5c564d] text-justify">
+                                Vi preghiamo di indossare l'outfit più <strong>inadeguato</strong> possibile per l'evento.  L'eleganza non sarà in alcun modo tollerata.
+                            </p>
+                        </div>
+                        
+                        <!-- Bottone RSVP -->
+                        <button onclick="showRsvpModal(event)" class="mt-4 px-6 py-3 border border-[#1a1a1a] text-[#1a1a1a] text-[0.65rem] uppercase tracking-widest hover:bg-[#1a1a1a] hover:text-white transition-colors duration-300 w-full font-semibold relative z-10">
+                            Conferma Presenza
+                        </button>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- 3. Fronte della busta -->
+            <div class="envelope-front"></div>
+            
+            <!-- 4. Linguetta superiore -->
+            <div class="envelope-flap"></div>
+
+            <!-- 5. Ceralacca posizionata matematicamente sopra tutto -->
+            <div class="wax-seal">A&M</div>
+
+        </div>
+    </div>
+
+    <!-- Modale personalizzata per RSVP -->
+    <div id="rsvpModal" class="fixed inset-0 z-50 hidden items-center justify-center bg-[#f2eee8]/80 backdrop-blur-sm p-6 opacity-0 transition-opacity duration-300">
+        <div class="bg-white p-8 max-w-[300px] w-full text-center border border-[#e6e2d6] shadow-2xl transform scale-95 transition-transform duration-300" id="rsvpContent">
+            <h3 class="font-serif text-xl mb-3 text-[#1a1a1a]">RSVP</h3>
+            <p class="text-xs text-gray-600 mb-8 leading-relaxed">
+                Contattateci per confermare la vostra presenza e il vostro outfit.<br><br>
+                <em>I look normali verranno segnalati alla segreteria.</em>
+            </p>
+            <button onclick="closeRsvpModal(event)" class="px-6 py-3 bg-[#1a1a1a] text-white text-[0.65rem] uppercase tracking-widest hover:bg-[#333] transition-colors w-full">
+                Ricevuto
+            </button>
+        </div>
+    </div>
+
+    <!-- Logica di interazione -->
+    <script>
+        let isOpened = false;
+        const scene = document.getElementById('envelope-scene');
+
+        function openEnvelope() {
+            if (isOpened) return;
+            
+            const envWrapper = document.getElementById('envelope-wrapper');
+            const hint = document.getElementById('hint');
+            
+            // Avvia la catena di animazioni CSS aggiungendo la classe
+            scene.classList.add('is-open'); 
+            envWrapper.classList.add('open-state'); 
+            
+            scene.classList.remove('floating'); // Ferma l'effetto fluttuante
+            hint.style.opacity = '0'; // Nasconde la scritta in alto
+            
+            scene.style.cursor = 'default';
+            isOpened = true;
+
+            // Dissolvenza della busta dopo che la lettera è uscita (0.6s + 0.8s = 1.4s)
+            setTimeout(() => {
+                scene.classList.add('is-faded');
+            }, 1400);
+        }
+
+        // Listener nativi Vanilla JS robusti per il mobile
+        function handleEnvelopeInteraction(e) {
+            if (!isOpened) {
+                // e.preventDefault() rimosso per mantenere fluido lo scroll nativo se necessario
+                openEnvelope();
+            }
+        }
+        
+        // Collega sia il tocco (mobile) che il clic (desktop) al contenitore principale
+        scene.addEventListener('touchstart', handleEnvelopeInteraction, { passive: true });
+        scene.addEventListener('click', handleEnvelopeInteraction);
+
+        function showRsvpModal(event) {
+            event.stopPropagation(); // Evita interazioni strane con i div sottostanti
+            
+            const modal = document.getElementById('rsvpModal');
+            const content = document.getElementById('rsvpContent');
+            
+            modal.classList.remove('hidden');
+            modal.classList.add('flex');
+            
+            // Ritardo millimetrico per l'animazione di entrata fluida
+            setTimeout(() => {
+                modal.classList.remove('opacity-0');
+                modal.classList.add('opacity-100');
+                content.classList.remove('scale-95');
+                content.classList.add('scale-100');
+            }, 10);
+        }
+
+        function closeRsvpModal(event) {
+            event.stopPropagation();
+            
+            const modal = document.getElementById('rsvpModal');
+            const content = document.getElementById('rsvpContent');
+            
+            // Animazione di uscita fluida
+            modal.classList.remove('opacity-100');
+            modal.classList.add('opacity-0');
+            content.classList.remove('scale-100');
+            content.classList.add('scale-95');
+            
+            setTimeout(() => {
+                modal.classList.add('hidden');
+                modal.classList.remove('flex');
+            }, 300);
+        }
+    </script>
+</body>
+</html>
