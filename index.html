@@ -8,12 +8,14 @@
     <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,600;0,700;1,400&family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet">
     
     <style>
-        /* Setup base per evitare scroll e usare font corretti */
+        /* Setup base */
         body {
             font-family: 'Inter', sans-serif;
             background-color: #f2eee8;
             margin: 0;
-            height: 100vh;
+            /* 100dvh si adatta all'apertura/chiusura della barra di ricerca su Mobile */
+            min-height: 100vh;
+            min-height: 100dvh; 
             display: flex;
             align-items: center;
             justify-content: center;
@@ -25,10 +27,27 @@
             font-family: 'Playfair Display', serif;
         }
 
+        /* --- NOVITÀ: Wrapper di ridimensionamento automatico --- */
+        .scale-wrapper {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: transform 0.3s ease;
+        }
+
+        /* Riduce proporzionalmente l'invito se lo schermo è troppo piccolo */
+        @media (max-height: 850px) { .scale-wrapper { transform: scale(0.9); } }
+        @media (max-height: 750px) { .scale-wrapper { transform: scale(0.8); } }
+        @media (max-height: 650px) { .scale-wrapper { transform: scale(0.7); } }
+        @media (max-height: 550px) { .scale-wrapper { transform: scale(0.6); } }
+        @media (max-width: 360px) { .scale-wrapper { transform: scale(0.85); } }
+        @media (max-width: 320px) { .scale-wrapper { transform: scale(0.75); } }
+        /* -------------------------------------------------------- */
+
         /* Testo di suggerimento iniziale */
         #hint {
             position: absolute;
-            top: 12vh;
+            top: 8vh;
             left: 0;
             width: 100%;
             text-align: center;
@@ -37,17 +56,17 @@
             z-index: 10;
         }
 
-        /* Contenitore principale interattivo - Area di clic massimizzata */
+        /* Contenitore principale interattivo */
         .envelope-scene {
             position: relative;
             width: 320px;
             height: 220px;
             cursor: pointer;
-            touch-action: manipulation; /* Ottimizzazione per tap su mobile */
+            touch-action: manipulation;
             z-index: 1;
         }
 
-        /* Animazione fluttuante (attiva solo a busta chiusa) */
+        /* Animazione fluttuante */
         .floating {
             animation: float-env 3s ease-in-out infinite;
         }
@@ -93,24 +112,23 @@
         .letter {
             position: absolute;
             top: 10px; left: 10px; right: 10px;
-            height: 200px; /* Altezza iniziale nascosta nella busta */
+            height: 200px; 
             background: #fbfaf8;
-            z-index: 2; /* Sopra il retro, sotto il fronte */
+            z-index: 2; 
             border-radius: 4px;
             box-shadow: 0 2px 10px rgba(0,0,0,0.05);
             overflow: hidden;
-            pointer-events: none; /* FONDAMENTALE: Non blocca il touch quando la busta è chiusa */
-            /* L'animazione di scivolamento attende l'apertura della linguetta (0.6s) */
+            pointer-events: none; 
             transition: height 0.8s cubic-bezier(0.4, 0, 0.2, 1) 0.6s, 
                         transform 0.8s cubic-bezier(0.4, 0, 0.2, 1) 0.6s,
                         box-shadow 0.8s ease 0.6s;
         }
 
         .envelope-scene.is-open .letter {
-            height: 520px; /* Si allunga per mostrare il contenuto */
-            transform: translateY(-310px); /* Scivola verso l'alto */
+            height: 520px; 
+            transform: translateY(-310px); 
             box-shadow: 0 15px 40px rgba(0,0,0,0.15);
-            pointer-events: auto; /* RIABILITA il click per far funzionare il bottone RSVP */
+            pointer-events: auto; 
         }
 
         /* Contenitore interno del testo */
@@ -131,21 +149,21 @@
             text-align: center;
         }
 
-        /* 3. Fronte della busta (tasca anteriore) */
+        /* 3. Fronte della busta */
         .envelope-front {
             position: absolute;
             inset: 0;
-            z-index: 3; /* Sopra la lettera per nasconderne la parte inferiore */
+            z-index: 3; 
             border-left: 160px solid #dcd3bf;
             border-right: 160px solid #dcd3bf;
             border-bottom: 110px solid #d4cbb6;
             border-top: 110px solid transparent;
-            pointer-events: none; /* Lascia passare i clic alla busta o ai bottoni sotto */
+            pointer-events: none; 
             border-radius: 4px;
             transition: opacity 0.5s ease;
         }
 
-        /* 4. Linguetta superiore (flap) */
+        /* 4. Linguetta superiore */
         .envelope-flap {
             position: absolute;
             top: 0; left: 0;
@@ -154,23 +172,22 @@
             border-top: 130px solid #d1c6b1;
             border-bottom: 0 solid transparent;
             transform-origin: top center;
-            z-index: 4; /* Sopra la tasca anteriore da chiusa */
+            z-index: 4; 
             transition: transform 0.6s cubic-bezier(0.4, 0, 0.2, 1), z-index 0s 0.3s;
             pointer-events: none;
             filter: drop-shadow(0 4px 5px rgba(0,0,0,0.15));
         }
 
-        /* Rotazione della linguetta all'apertura */
         .envelope-scene.is-open .envelope-flap {
             transform: rotateX(180deg);
-            z-index: 1; /* Va dietro alla lettera così non la copre quando scivola su */
+            z-index: 1; 
         }
 
-        /* 5. Ceralacca posizionata matematicamente e centrata sulla punta della linguetta */
+        /* 5. Ceralacca posizionata matematicamente */
         .wax-seal {
             position: absolute;
-            top: 130px; /* Esattamente l'altezza della linguetta */
-            left: 160px; /* Esattamente il centro dei 320px di larghezza */
+            top: 130px; 
+            left: 160px; 
             width: 48px;
             height: 48px;
             background: #711515;
@@ -182,11 +199,10 @@
             align-items: center;
             justify-content: center;
             box-shadow: 0 4px 6px rgba(0,0,0,0.3), inset 0 0 10px rgba(0,0,0,0.6);
-            z-index: 5; /* In cima a tutto */
-            /* Traslazione per centrare l'elemento sulle coordinate assolute */
+            z-index: 5; 
             transform: translate(-50%, -50%);
             transition: opacity 0.3s ease, transform 0.3s ease;
-            pointer-events: none; /* Non blocca il clic sull'envelope-scene */
+            pointer-events: none; 
         }
 
         .wax-seal::after {
@@ -197,13 +213,12 @@
             border-radius: 50%;
         }
 
-        /* Effetto di rottura del sigillo */
         .envelope-scene.is-open .wax-seal {
             opacity: 0;
             transform: translate(-50%, -50%) scale(0.6);
         }
 
-        /* Effetto di scomparsa della busta al termine dell'animazione */
+        /* Scomparsa della busta */
         .envelope-scene.is-faded .envelope-back,
         .envelope-scene.is-faded .envelope-front,
         .envelope-scene.is-faded .envelope-flap {
@@ -220,74 +235,64 @@
         <div class="text-[#8c8273] animate-bounce text-sm">↓</div>
     </div>
 
-    <!-- Scena Interattiva (Tutta l'area è cliccabile, rimossi gli handler inline) -->
-    <div class="envelope-scene floating" id="envelope-scene">
-        <div class="envelope-wrapper" id="envelope-wrapper">
-            
-            <!-- 1. Tasca Dietro -->
-            <div class="envelope-back"></div>
-            
-            <!-- 2. Lettera che scivola fuori -->
-            <div class="letter">
-                <div class="letter-content">
-                    <div class="letter-inner-border">
-                        
-                        <!-- Intestazione Elegante -->
-                        <div>
-                            <p class="text-[0.55rem] uppercase tracking-[0.3em] text-gray-400 mb-3">Graduation Event</p>
-                            <h1 class="text-3xl font-serif text-[#1a1a1a] mb-1 leading-none">Angela & Mei</h1>
-                            <p class="text-[0.55rem] uppercase tracking-[0.1em] text-gray-500 mb-5 border-b border-gray-200 pb-4">
-                                Informatica <span class="mx-2 text-gray-300">×</span> Architettura
-                            </p>
+    <!-- Wrapper che applica la scalabilità dinamica in base allo schermo -->
+    <div class="scale-wrapper">
+        <div class="envelope-scene floating" id="envelope-scene">
+            <div class="envelope-wrapper" id="envelope-wrapper">
+                
+                <div class="envelope-back"></div>
+                
+                <div class="letter">
+                    <div class="letter-content">
+                        <div class="letter-inner-border">
                             
-                            <!-- Dettagli Logistici -->
-                            <div class="space-y-3 mb-5">
-                                <div>
-                                    <p class="text-[0.55rem] uppercase tracking-widest text-gray-400 mb-0.5">Data e Ora</p>
-                                    <p class="font-serif text-[1rem] text-[#2c2c2c]">21 Ottobre, 19:00</p>
-                                </div>
-                                <div>
-                                    <p class="text-[0.55rem] uppercase tracking-widest text-gray-400 mb-0.5">Location</p>
-                                    <p class="font-serif text-[1rem] text-[#2c2c2c]">Hong Ni, Via Giuseppe Giusti, 41, Milano</p>
+                            <div>
+                                <p class="text-[0.55rem] uppercase tracking-[0.3em] text-gray-400 mb-3">Graduation Event</p>
+                                <h1 class="text-3xl font-serif text-[#1a1a1a] mb-1 leading-none">Angela & Mei</h1>
+                                <p class="text-[0.55rem] uppercase tracking-[0.1em] text-gray-500 mb-5 border-b border-gray-200 pb-4">
+                                    Informatica <span class="mx-2 text-gray-300">×</span> Architettura
+                                </p>
+                                
+                                <div class="space-y-3 mb-5">
+                                    <div>
+                                        <p class="text-[0.55rem] uppercase tracking-widest text-gray-400 mb-0.5">Data e Ora</p>
+                                        <p class="font-serif text-[1rem] text-[#2c2c2c]">21 Ottobre, 19:00</p>
+                                    </div>
+                                    <div>
+                                        <p class="text-[0.55rem] uppercase tracking-widest text-gray-400 mb-0.5">Location</p>
+                                        <p class="font-serif text-[1rem] text-[#2c2c2c]">Hong Ni, Via Giuseppe Giusti, 41, Milano</p>
+                                    </div>
                                 </div>
                             </div>
-                        </div>
-                        
-                        <!-- Testo Formale (Contrasto) -->
-                        <p class="text-[0.65rem] text-[#5c564d] italic mb-4">
-                            Dopo aver superato indenni le aule e i laboratori del Politecnico di Milano, ci riuniamo per celebrare questo ambito traguardo.
-                        </p>
-
-                        <!-- Sezione Dress Code (il contrasto comico) -->
-                        <div class="bg-[#f0ece5] p-4 border border-[#dfd9ce]">
-                            <div class="flex items-center justify-center gap-2 mb-2">
-                                <span class="w-6 h-[1px] bg-[#c2baab]"></span>
-                                <span class="text-[0.55rem] font-bold uppercase tracking-widest text-[#8a8171]">Dress Code Not Obbligatorio</span>
-                                <span class="w-6 h-[1px] bg-[#c2baab]"></span>
-                            </div>
-                            <h2 class="font-serif italic text-lg text-[#212121] mb-2">"The wrong place"</h2>
-                            <p class="text-[0.65rem] leading-relaxed text-[#5c564d] text-justify">
-                                Vi preghiamo di indossare l'outfit più <strong>inadeguato</strong> possibile per l'evento.  L'eleganza non sarà in alcun modo tollerata.
+                            
+                            <p class="text-[0.65rem] text-[#5c564d] italic mb-4">
+                                Dopo aver superato indenni le aule e i laboratori del Politecnico di Milano, ci riuniamo per celebrare questo ambito traguardo.
                             </p>
+
+                            <div class="bg-[#f0ece5] p-4 border border-[#dfd9ce]">
+                                <div class="flex items-center justify-center gap-2 mb-2">
+                                    <span class="w-6 h-[1px] bg-[#c2baab]"></span>
+                                    <span class="text-[0.55rem] font-bold uppercase tracking-widest text-[#8a8171]">Dress Code Not Obbligatorio</span>
+                                    <span class="w-6 h-[1px] bg-[#c2baab]"></span>
+                                </div>
+                                <h2 class="font-serif italic text-lg text-[#212121] mb-2">"The wrong place"</h2>
+                                <p class="text-[0.65rem] leading-relaxed text-[#5c564d] text-justify">
+                                    Vi preghiamo di indossare l'outfit più <strong>inadeguato</strong> possibile per l'evento. L'eleganza non sarà in alcun modo tollerata.
+                                </p>
+                            </div>
+                            
+                            <button onclick="showRsvpModal(event)" class="mt-4 px-6 py-3 border border-[#1a1a1a] text-[#1a1a1a] text-[0.65rem] uppercase tracking-widest hover:bg-[#1a1a1a] hover:text-white transition-colors duration-300 w-full font-semibold relative z-10">
+                                Conferma Presenza
+                            </button>
                         </div>
-                        
-                        <!-- Bottone RSVP -->
-                        <button onclick="showRsvpModal(event)" class="mt-4 px-6 py-3 border border-[#1a1a1a] text-[#1a1a1a] text-[0.65rem] uppercase tracking-widest hover:bg-[#1a1a1a] hover:text-white transition-colors duration-300 w-full font-semibold relative z-10">
-                            Conferma Presenza
-                        </button>
                     </div>
                 </div>
+                
+                <div class="envelope-front"></div>
+                <div class="envelope-flap"></div>
+                <div class="wax-seal">A&M</div>
+
             </div>
-            
-            <!-- 3. Fronte della busta -->
-            <div class="envelope-front"></div>
-            
-            <!-- 4. Linguetta superiore -->
-            <div class="envelope-flap"></div>
-
-            <!-- 5. Ceralacca posizionata matematicamente sopra tutto -->
-            <div class="wax-seal">A&M</div>
-
         </div>
     </div>
 
@@ -305,7 +310,6 @@
         </div>
     </div>
 
-    <!-- Logica di interazione -->
     <script>
         let isOpened = false;
         const scene = document.getElementById('envelope-scene');
@@ -316,69 +320,4 @@
             const envWrapper = document.getElementById('envelope-wrapper');
             const hint = document.getElementById('hint');
             
-            // Avvia la catena di animazioni CSS aggiungendo la classe
-            scene.classList.add('is-open'); 
-            envWrapper.classList.add('open-state'); 
-            
-            scene.classList.remove('floating'); // Ferma l'effetto fluttuante
-            hint.style.opacity = '0'; // Nasconde la scritta in alto
-            
-            scene.style.cursor = 'default';
-            isOpened = true;
-
-            // Dissolvenza della busta dopo che la lettera è uscita (0.6s + 0.8s = 1.4s)
-            setTimeout(() => {
-                scene.classList.add('is-faded');
-            }, 1400);
-        }
-
-        // Listener nativi Vanilla JS robusti per il mobile
-        function handleEnvelopeInteraction(e) {
-            if (!isOpened) {
-                // e.preventDefault() rimosso per mantenere fluido lo scroll nativo se necessario
-                openEnvelope();
-            }
-        }
-        
-        // Collega sia il tocco (mobile) che il clic (desktop) al contenitore principale
-        scene.addEventListener('touchstart', handleEnvelopeInteraction, { passive: true });
-        scene.addEventListener('click', handleEnvelopeInteraction);
-
-        function showRsvpModal(event) {
-            event.stopPropagation(); // Evita interazioni strane con i div sottostanti
-            
-            const modal = document.getElementById('rsvpModal');
-            const content = document.getElementById('rsvpContent');
-            
-            modal.classList.remove('hidden');
-            modal.classList.add('flex');
-            
-            // Ritardo millimetrico per l'animazione di entrata fluida
-            setTimeout(() => {
-                modal.classList.remove('opacity-0');
-                modal.classList.add('opacity-100');
-                content.classList.remove('scale-95');
-                content.classList.add('scale-100');
-            }, 10);
-        }
-
-        function closeRsvpModal(event) {
-            event.stopPropagation();
-            
-            const modal = document.getElementById('rsvpModal');
-            const content = document.getElementById('rsvpContent');
-            
-            // Animazione di uscita fluida
-            modal.classList.remove('opacity-100');
-            modal.classList.add('opacity-0');
-            content.classList.remove('scale-100');
-            content.classList.add('scale-95');
-            
-            setTimeout(() => {
-                modal.classList.add('hidden');
-                modal.classList.remove('flex');
-            }, 300);
-        }
-    </script>
-</body>
-</html>
+            scene.classList.add('is-open');
