@@ -83,10 +83,10 @@
             border-radius: 4px;
         }
 
+        /* Lettera dentro la busta (stato iniziale) */
         .letter {
             position: absolute;
-            top: 10px; left: 10px;
-            width: 300px; 
+            top: 10px; left: 10px; right: 10px;
             height: 200px; 
             background: #fbfaf8;
             z-index: 2; 
@@ -94,29 +94,36 @@
             box-shadow: 0 2px 10px rgba(0,0,0,0.05);
             overflow: hidden;
             pointer-events: none; 
-            transition: all 0.8s cubic-bezier(0.4, 0, 0.2, 1);
+            transition: height 0.8s cubic-bezier(0.4, 0, 0.2, 1) 0.6s, 
+                        transform 0.8s cubic-bezier(0.4, 0, 0.2, 1) 0.6s;
         }
 
         .envelope-scene.is-open .letter {
             height: 550px; 
             transform: translateY(-340px); 
-            box-shadow: 0 15px 40px rgba(0,0,0,0.15);
             pointer-events: auto; 
         }
 
-        .letter.fullscreen-mode {
+        /* --- CLASSE FULLSCREEN PURA (Applicata via JS sul Body) --- */
+        .letter-fullscreen {
             position: fixed !important;
-            top: 0 !important;
-            left: 0 !important;
+            inset: 0 !important;
             width: 100vw !important;
             height: 100dvh !important;
-            transform: none !important;
+            background: #fbfaf8 !important;
+            z-index: 99999 !important;
             border-radius: 0 !important;
-            z-index: 9999 !important;
             box-shadow: none !important;
+            transform: none !important;
             display: flex;
             align-items: center;
             justify-content: center;
+            animation: fadeInLetter 0.5s ease forwards;
+        }
+
+        @keyframes fadeInLetter {
+            from { opacity: 0; transform: scale(0.95); }
+            to { opacity: 1; transform: scale(1); }
         }
 
         .letter-content {
@@ -126,15 +133,14 @@
             align-items: center;
             justify-content: center;
             padding: 15px;
-            transition: all 0.8s ease;
         }
         
         .letter-inner-border {
             border: 1px solid #e6e2d6;
             width: 100%;
             height: 100%;
-            max-width: 500px; 
-            max-height: 650px; 
+            max-width: 480px; 
+            max-height: 620px; 
             display: flex;
             flex-direction: column;
             justify-content: space-between;
@@ -209,11 +215,10 @@
             transform: translate(-50%, -50%) scale(0.6);
         }
 
-        .envelope-scene.is-faded .envelope-back,
-        .envelope-scene.is-faded .envelope-front,
-        .envelope-scene.is-faded .envelope-flap {
+        .envelope-scene.is-faded {
             opacity: 0;
             pointer-events: none;
+            transition: opacity 0.4s ease;
         }
     </style>
 </head>
@@ -229,7 +234,8 @@
             
             <div class="envelope-back"></div>
             
-            <div class="letter">
+            <!-- La lettera -->
+            <div class="letter" id="main-letter">
                 <div class="letter-content">
                     <div class="letter-inner-border">
                         
@@ -288,7 +294,7 @@
     </div>
 
     <!-- Modale RSVP -->
-    <div id="rsvpModal" class="fixed inset-0 z-50 hidden items-center justify-center bg-[#f2eee8]/80 backdrop-blur-sm p-6 opacity-0 transition-opacity duration-300">
+    <div id="rsvpModal" class="fixed inset-0 z-[999999] hidden items-center justify-center bg-[#f2eee8]/90 backdrop-blur-sm p-6 opacity-0 transition-opacity duration-300">
         <div class="bg-white p-8 max-w-[300px] w-full text-center border border-[#e6e2d6] shadow-2xl transform scale-95 transition-transform duration-300" id="rsvpContent">
             <h3 id="modalTitle" class="font-serif text-xl mb-3 text-[#1a1a1a]">RSVP</h3>
             <p id="modalDesc" class="text-xs text-gray-600 mb-8 leading-relaxed"></p>
@@ -307,28 +313,25 @@
             const scene = document.getElementById('envelope-scene');
             const envWrapper = document.getElementById('envelope-wrapper');
             const hint = document.getElementById('hint');
-            const letter = document.querySelector('.letter');
+            const letter = document.getElementById('main-letter');
             
             scene.classList.add('is-open'); 
             envWrapper.classList.add('open-state'); 
             
             scene.classList.remove('floating');
             hint.style.opacity = '0';
-            
-            scene.style.cursor = 'default';
             isOpened = true;
 
+            // Dopo l'animazione d'apertura, facciamo sparire la busta e portiamo la lettera a schermo intero
             setTimeout(() => {
                 scene.classList.add('is-faded');
-            }, 1400);
+            }, 1200);
 
             setTimeout(() => {
-                envWrapper.style.transform = 'none';
-                envWrapper.style.perspective = 'none';
-                scene.style.transform = 'none';
-                
-                letter.classList.add('fullscreen-mode');
-            }, 1900);
+                // Spostiamo la lettera direttamente nel body per sbloccarla da qualsiasi limite mobile
+                document.body.appendChild(letter);
+                letter.className = "letter-fullscreen";
+            }, 1700);
         }
 
         const sceneElement = document.getElementById('envelope-scene');
