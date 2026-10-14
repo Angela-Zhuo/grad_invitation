@@ -36,7 +36,6 @@
             z-index: 10;
         }
 
-        /* Contenitore principale compatto */
         .envelope-scene {
             position: relative;
             width: 320px;
@@ -62,7 +61,6 @@
             transition: transform 0.8s cubic-bezier(0.4, 0, 0.2, 1) 0.6s;
         }
 
-        /* Abbassamento della busta all'apertura */
         .open-state {
             transform: translateY(130px);
         }
@@ -85,7 +83,6 @@
             border-radius: 4px;
         }
 
-        /* La Lettera Ottimizzata */
         .letter {
             position: absolute;
             top: 10px; left: 10px; right: 10px;
@@ -101,7 +98,6 @@
                         box-shadow 0.8s ease 0.6s;
         }
 
-        /* Dimensioni riviste: 540px di altezza bastano se i margini sono ottimizzati */
         .envelope-scene.is-open .letter {
             height: 550px; 
             transform: translateY(-340px); 
@@ -122,7 +118,7 @@
             display: flex;
             flex-direction: column;
             justify-content: space-between;
-            padding: 15px; /* Padding ridotto per far spazio al contenuto */
+            padding: 15px; 
             text-align: center;
         }
 
@@ -199,7 +195,6 @@
             pointer-events: none;
         }
 
-        /* Regole di sicurezza per schermi molto piccoli (come l'iPhone SE) */
         @media (max-height: 700px) {
             .envelope-scene { transform: scale(0.85); }
         }
@@ -215,8 +210,8 @@
         <div class="text-[#8c8273] animate-bounce text-sm">↓</div>
     </div>
 
-    <!-- Clic e Touch unificati sull'elemento principale per massima compatibilità -->
-    <div class="envelope-scene floating" id="envelope-scene" onclick="openEnvelope()" ontouchstart="openEnvelope()">
+    <!-- Rimosso ogni comando in linea, tutto gestito in sicurezza da JS in basso -->
+    <div class="envelope-scene floating" id="envelope-scene">
         <div class="envelope-wrapper" id="envelope-wrapper">
             
             <div class="envelope-back"></div>
@@ -225,7 +220,6 @@
                 <div class="letter-content">
                     <div class="letter-inner-border">
                         
-                        <!-- Header compattato -->
                         <div>
                             <p class="text-[0.5rem] uppercase tracking-[0.3em] text-gray-400 mb-2 mt-1">Graduation Event</p>
                             <h1 class="text-3xl font-serif text-[#1a1a1a] mb-1 leading-none">Angela & Mei</h1>
@@ -233,7 +227,6 @@
                                 Informatica <span class="mx-2 text-gray-300">×</span> Architettura
                             </p>
                             
-                            <!-- Spazi ridotti tra i testi per far salire il bottone -->
                             <div class="space-y-2 mb-3">
                                 <div>
                                     <p class="text-[0.5rem] uppercase tracking-widest text-gray-400 mb-0.5">Data e Ora</p>
@@ -250,7 +243,6 @@
                             Dopo aver superato indenni le aule e i laboratori del Politecnico di Milano, ci riuniamo per celebrare questo ambito traguardo.
                         </p>
 
-                        <!-- Box dress code compattato -->
                         <div class="bg-[#f0ece5] p-3 border border-[#dfd9ce] mb-3 mx-1">
                             <div class="flex items-center justify-center gap-2 mb-2">
                                 <span class="w-4 h-[1px] bg-[#c2baab]"></span>
@@ -263,7 +255,6 @@
                             </p>
                         </div>
                         
-                        <!-- Bottone RSVP: ORA SEMPRE VISIBILE -->
                         <button onclick="showRsvpModal(event)" class="mb-1 px-4 py-2.5 border border-[#1a1a1a] text-[#1a1a1a] text-[0.65rem] uppercase tracking-widest hover:bg-[#1a1a1a] hover:text-white transition-colors duration-300 w-full font-semibold relative z-10 cursor-pointer">
                             Conferma Presenza
                         </button>
@@ -315,6 +306,22 @@
                 scene.classList.add('is-faded');
             }, 1400);
         }
+
+        // --- SISTEMA DI CLIC / TOUCH UNIVERSALE ---
+        const sceneElement = document.getElementById('envelope-scene');
+        
+        // Funzione di gestione che copre sia il mouse che il tocco senza sovrapporsi
+        function handleInteraction(e) {
+            // Evita che cliccando sul bottone RSVP, l'animazione della busta impazzisca
+            if (e.target.closest('button')) return;
+            openEnvelope();
+        }
+
+        sceneElement.addEventListener('click', handleInteraction);
+        sceneElement.addEventListener('touchstart', function(e) {
+            handleInteraction(e);
+        }, { passive: true });
+        // -------------------------------------------
 
         function showRsvpModal(event) {
             event.stopPropagation(); 
